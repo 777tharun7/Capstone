@@ -6,6 +6,9 @@
 [![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.1-646CFF.svg?logo=vite)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-22c55e?style=for-the-badge&logo=github)](https://777tharun7.github.io/Capstone/)
+
+> 🌐 **Interactive Live Web Demo**: [https://777tharun7.github.io/Capstone/](https://777tharun7.github.io/Capstone/)
 
 An end-to-end, full-stack academic research platform demonstrating how **Reinforcement Learning (RL)** overcomes the limitations of greedy, short-term **Click-Through Rate (CTR)** heuristics by sequentially optimizing for **long-term multi-objective user engagement, session duration, and retention**.
 

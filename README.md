@@ -128,20 +128,7 @@ Evaluated across 50 simulated user test rollouts on the Gymnasium recommendation
 
 ---
 
-## 5. Theoretical Literature Review & Foundational Research
-
-This project builds directly upon core principles established across four seminal research works in reinforcement learning for recommendation and ranking systems:
-
-| Citation & Venue | Key Focus & Framework | Contributions to this Project | Identified Limitations & Gaps |
-| :--- | :--- | :--- | :--- |
-| **Lin et al. (2023)**<br>*IEEE TNNLS*<br>`"A Survey on Reinforcement Learning for Recommender Systems"` | Surveys RL recommendation paradigms; formalizes recommendation as MDP sequential decision tasks. | Grounding for our state-space formulation ($S_t \in \mathbb{R}^{48}$) and sequential policy learning. | Theoretical survey; highlights real-world challenges in data sparsity, action scalability, and interpretability. |
-| **Zhao et al. (2019)**<br>*ACM KDD (DRL4KDD)*<br>`"Deep Reinforcement Learning for List-wise Recommendations"` | **LIRD Framework**: Actor-Critic architecture for list-wise recommendations with offline-to-online simulator. | Informs our PPO actor-critic network and top-$K$ list-wise candidate ranking mechanism. | Depends on simulated environments that may diverge from organic human browsing behavior. |
-| **Hu et al. (2018)**<br>*ACM SIGKDD (KDD '18)*<br>`"Reinforcement Learning to Rank in E-Commerce Search Engine"` | **SSMDP & DPG-FBE**: Models entire multi-step sessions to handle sparse rewards and maximize cumulative GMV on Taobao. | Validates our multi-objective decomposed reward formulation ($R_t$) across clicks, likes, and session survival. | High computational training cost and reliance on massive interaction logs. |
-| **Afsar et al. (2022)**<br>*ACM CSUR*<br>`"Reinforcement Learning based Recommender Systems: A Survey"` | Taxonomy of model-free (Q-learning, Policy Gradients) and model-based RL recommendation techniques. | Justification for comparing Q-learning (DQN) against Policy Gradients (PPO) alongside bandits. | Conceptual survey lacking a standardized reproducible benchmark platform. |
-
----
-
-## 6. Repository Structure
+## 5. Repository Structure
 
 ```
 rl-recommendation-system/
@@ -282,6 +269,20 @@ Open **`http://localhost:5173`** in your browser.
 - **Transparent Simulation**: The user simulator is explicitly documented as an offline evaluation tool for academic demonstration without claiming equivalent live production human behavior.
 
 ---
+
+## 9. Key Literature & Theoretical Grounding
+
+This project directly implements and builds upon four foundational research papers in Reinforcement Learning for Recommender Systems:
+
+| # | Paper Title | Authors & Year | Venue / Publisher | Core Contribution |
+| :-: | :--- | :--- | :--- | :--- |
+| **1** | **A Survey on Reinforcement Learning for Recommender Systems** | Yuanguo Lin et al. (2023) | *IEEE Transactions on Neural Networks and Learning Systems (TNNLS)* | Formalizes recommendation as sequential MDP decision-making; surveys interactive and conversational RL systems. |
+| **2** | **Deep Reinforcement Learning for List-wise Recommendations** | Xiangyu Zhao et al. (2019) | *ACM (DRL4KDD @ KDD)* | Proposes the **LIRD** Actor-Critic framework for sequential list ranking and offline user simulation. |
+| **3** | **Reinforcement Learning to Rank in E-Commerce Search Engine: Formalization, Analysis, and Application** | Yujing Hu et al. (2018) | *ACM SIGKDD (KDD '18)* | Formalizes the **Search Session MDP (SSMDP)** and introduces **DPG-FBE** to resolve sparse transaction rewards in Alibaba Taobao. |
+| **4** | **Reinforcement Learning based Recommender Systems: A Survey** | M. Mehdi Afsar et al. (2022) | *ACM Computing Surveys (CSUR)* | Comprehensive survey classifying state representations, action spaces, reward engineering, and open benchmark challenges. |
+
+---
+
 
 ## 9. License
 MIT License. Developed for Academic Research and Advanced Reinforcement Learning demonstrations.

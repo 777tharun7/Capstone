@@ -748,90 +748,101 @@ export default function RecommendationsPage({
           </div>
         </div>
 
-        {/* 3. 5 Telemetry Cards Row (Compact) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          
-          {/* Card 1: Cumulative Return (G_t) */}
-          <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-soft-sm flex flex-col justify-between space-y-0.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span className="text-[10px] font-medium text-slate-500">Cumulative Return</span>
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-            </div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-black text-slate-900 font-mono">
-                +{sessionMeta?.cumulative_reward ? Number(sessionMeta.cumulative_reward).toFixed(1) : "48.5"}
-              </span>
-              <span className="text-[10px] font-semibold text-emerald-600 font-mono">↑ +12.3%</span>
-            </div>
-            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mt-0.5">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '85%' }} />
-            </div>
-          </div>
+        {/* 3. 5 Telemetry Cards Row (Compact & Dynamically Responsive) */}
+        {(() => {
+          const currentStep = Math.min(20, Math.max(1, ((sessionMeta?.step || 1) - 1) % 20 + 1));
+          const currentSatPercent = Math.min(99, Math.max(45, Math.round((sessionMeta?.satisfaction ?? 0.86) * 100)));
+          const currentReturn = sessionMeta?.cumulative_reward !== undefined ? Number(sessionMeta.cumulative_reward).toFixed(1) : "34.8";
+          const dynamicExplorationRate = activeModel === 'DQN'
+            ? Math.max(5, Math.round(35 * Math.pow(0.94, currentStep)))
+            : Math.max(8, Math.round(24 * Math.pow(0.97, currentStep)));
 
-          {/* Card 2: Session Step */}
-          <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-soft-sm flex flex-col justify-between space-y-0.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span className="text-[10px] font-medium text-slate-500">Session Step</span>
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-            </div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-black text-slate-900 font-mono">
-                {sessionMeta?.step || 10} / 20
-              </span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
-              <div className="bg-blue-600 h-full rounded-full" style={{ width: `${Math.min(100, ((sessionMeta?.step || 10) / 20) * 100)}%` }} />
-            </div>
-          </div>
-
-          {/* Card 3: Dynamic Satisfaction */}
-          <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-soft-sm flex flex-col justify-between space-y-0.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span className="text-[10px] font-medium text-slate-500">Dynamic Satisfaction</span>
-              <Smile className="w-3.5 h-3.5 text-purple-600" />
-            </div>
-            <div className="flex items-baseline space-x-1.5">
-              <span className="text-xl font-black text-slate-900 font-mono">
-                {Math.round((sessionMeta?.satisfaction || 0.99) * 100)}%
-              </span>
-              <span className="text-[10px] font-semibold text-emerald-600 font-mono">↑ +8.1%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style={{ width: `${(sessionMeta?.satisfaction || 0.99) * 100}%` }} />
-            </div>
-          </div>
-
-          {/* Card 4: Exploration Rate */}
-          <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-soft-sm flex flex-col justify-between space-y-0.5">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span className="text-[10px] font-medium text-slate-500">Exploration Rate</span>
-              <Compass className="w-3.5 h-3.5 text-amber-600" />
-            </div>
-            <div>
-              <span className="text-xl font-black text-slate-900 font-mono">
-                {Math.round((actorInfo.exploration_ratio || 0.18) * 100)}%
-              </span>
-              <div className="w-full bg-slate-100 rounded-full h-1 mt-0.5 overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${(actorInfo.exploration_ratio || 0.18) * 100}%` }} />
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+              
+              {/* Card 1: Cumulative Return (G_t) */}
+              <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-soft-sm flex flex-col justify-between space-y-0.5">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Cumulative Return</span>
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                </div>
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">
+                    +{currentReturn}
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-600 font-mono">↑ +12.3%</span>
+                </div>
+                <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-0.5">
+                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${Math.min(100, (Number(currentReturn) / 50) * 100)}%` }} />
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Card 5: Optimization Target */}
-          <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-soft-sm flex flex-col justify-between space-y-0.5 col-span-2 sm:col-span-1">
-            <div className="flex items-center justify-between text-slate-400 text-xs">
-              <span className="text-[10px] font-medium text-slate-500">Optimization Target</span>
-              <Target className="w-3.5 h-3.5 text-cyan-600" />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold text-blue-700 block leading-tight">
-                Sequential Multi-Step Policy Optimization
-              </span>
-              <span className="text-[9px] text-slate-400 font-mono block">GAE Discounted Return</span>
-            </div>
-          </div>
+              {/* Card 2: Session Step */}
+              <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-soft-sm flex flex-col justify-between space-y-0.5">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Session Step</span>
+                  <Layers className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">
+                    {currentStep} / 20
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-0.5 overflow-hidden">
+                  <div className="bg-blue-600 h-full rounded-full" style={{ width: `${(currentStep / 20) * 100}%` }} />
+                </div>
+              </div>
 
-        </div>
+              {/* Card 3: Dynamic Satisfaction */}
+              <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-soft-sm flex flex-col justify-between space-y-0.5">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Dynamic Satisfaction</span>
+                  <Smile className="w-3.5 h-3.5 text-purple-600" />
+                </div>
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">
+                    {currentSatPercent}%
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-600 font-mono">↑ +{Math.max(1, Math.round(currentSatPercent * 0.08))}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-0.5 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style={{ width: `${currentSatPercent}%` }} />
+                </div>
+              </div>
+
+              {/* Card 4: Exploration Rate */}
+              <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-soft-sm flex flex-col justify-between space-y-0.5">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Exploration Rate</span>
+                  <Compass className="w-3.5 h-3.5 text-amber-600" />
+                </div>
+                <div>
+                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">
+                    {dynamicExplorationRate}%
+                  </span>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-0.5 overflow-hidden">
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${dynamicExplorationRate}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 5: Optimization Target */}
+              <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-soft-sm flex flex-col justify-between space-y-0.5 col-span-2 sm:col-span-1">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Optimization Target</span>
+                  <Target className="w-3.5 h-3.5 text-cyan-600" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 block leading-tight">
+                    Sequential Multi-Step Policy Optimization
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono block">GAE Discounted Return</span>
+                </div>
+              </div>
+
+            </div>
+          );
+        })()}
 
         {/* 4. Main Recommendation Feed + Right-Side Model Explanation Panel (Tight Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -921,7 +932,14 @@ export default function RecommendationsPage({
                     }`}
                   >
                     {/* Top Image Banner with Rank & Duration Overlay */}
-                    <div className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/80">
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onViewDetail) onViewDetail(item.action_id);
+                        else if (setActivePage) setActivePage('item-detail');
+                      }}
+                      className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/80 cursor-pointer"
+                    >
                       <img 
                         src={poster} 
                         alt={item.title} 
@@ -994,9 +1012,10 @@ export default function RecommendationsPage({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleInteract(item.action_id, 'click');
+                          if (onViewDetail) onViewDetail(item.action_id);
+                          else if (setActivePage) setActivePage('item-detail');
                         }}
-                        className="flex-1 flex items-center justify-center space-x-1 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-xs transition-colors"
+                        className="flex-1 flex items-center justify-center space-x-1 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-xs transition-all hover:scale-102 cursor-pointer"
                       >
                         <Play className="w-2.5 h-2.5 fill-white" />
                         <span>Watch</span>

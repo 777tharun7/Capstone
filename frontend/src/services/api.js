@@ -4,7 +4,7 @@ import evalResults from '../data/evaluation_results.json';
 import ppoHistory from '../data/ppo_training_history.json';
 import dqnHistory from '../data/dqn_training_history.json';
 import banditHistory from '../data/bandit_training_history.json';
-import { MOVIE_DETAILS } from '../utils/movieDatabase';
+import { MOVIE_DETAILS, getMovieDetails } from '../utils/movieDatabase';
 
 const API_BASE = '/api';
 
@@ -35,8 +35,10 @@ let localActiveModel = 'PPO';
 const getUserClientState = (userId = 1) => {
   if (!clientUserStates[userId]) {
     clientUserStates[userId] = {
-      step: 0,
-      satisfaction: 0.82,
+      step: 1,
+      maxSteps: 20,
+      cumulativeReward: 32.4,
+      satisfaction: 0.86,
       boredom: 0.08,
       history: [],
       recentGenres: [],
@@ -47,7 +49,7 @@ const getUserClientState = (userId = 1) => {
   return clientUserStates[userId];
 };
 
-export const getRecommendations = async (userId = 1, modelName = null, topK = 10) => {
+export const getRecommendations = async (userId = 1, modelName = null, topK = 12) => {
   try {
     const res = await apiClient.post('/recommend', {
       user_id: userId,
@@ -61,31 +63,44 @@ export const getRecommendations = async (userId = 1, modelName = null, topK = 10
     const uState = getUserClientState(userId);
     const allItems = Array.isArray(itemsData) ? itemsData : (itemsData.items || []);
     
+    const displayStep = Math.min(20, Math.max(1, ((uState.step - 1) % 20) + 1));
+    const exploration = model === 'DQN' 
+      ? Math.max(0.05, 0.35 * Math.pow(0.94, displayStep)) 
+      : Math.max(0.08, 0.24 * Math.pow(0.97, displayStep));
+
     // Sort / rank items depending on model
     const ranked = allItems.slice(0, 50).map((it, idx) => {
       let score = 0.95 - idx * 0.015;
-      if (model === 'PPO') score += (Math.sin(idx + uState.step) * 0.04);
-      if (model === 'DQN') score += (Math.cos(idx * 0.5) * 0.03);
+      if (model === 'PPO') score += (Math.sin(idx + displayStep) * 0.04);
+      if (model === 'DQN') score += (Math.cos(idx * 0.5 + displayStep * 0.2) * 0.03);
       if (model === 'Contextual Bandit') score = 0.88 - idx * 0.018;
       if (model === 'Collaborative Filtering') score = 0.82 - idx * 0.02;
 
-      const details = MOVIE_DETAILS[it.title] || {};
+      const details = getMovieDetails(it.title, (it.genres && it.genres[0]) || "Action");
+      const predReward = Math.max(0.5, Number((score * 3.8).toFixed(2)));
+      const valueEstimate = Math.max(1.2, Number((score * 3.1).toFixed(2)));
+
       return {
         action_id: it.action_id ?? idx,
         item_id: it.item_id ?? (idx + 1),
         title: it.title,
-        genres: it.genres || ['Drama'],
+        primary_genre: (it.genres && it.genres[0]) || "Action",
+        genres: it.genres || ['Action', 'Drama'],
         match_score: Math.max(0.4, Math.min(0.99, Number(score.toFixed(3)))),
-        predicted_reward: Math.max(0.5, Number((score * 3.8).toFixed(2))),
+        rl_score: Math.max(0.4, Math.min(0.99, Number(score.toFixed(3)))),
+        predicted_reward: predReward,
+        value_estimate: valueEstimate,
         confidence: Math.max(0.65, Number((0.92 - idx * 0.01).toFixed(2))),
         rank: idx + 1,
+        avg_rating: it.average_rating || details.imdb_rating || 8.0,
+        popularity: it.popularity || 0.95,
         poster: details.poster || it.poster || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80",
         backdrop: details.backdrop || it.backdrop || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&auto=format&fit=crop&q=80",
         director: details.director || "Acclaimed Director",
-        imdb_rating: details.imdb_rating || it.average_rating || 8.0,
         overview: details.overview || "An engaging cinematic journey exploring rich characters and intricate storylines.",
         duration: details.duration || "1h 54m",
-        year: details.year || 1995
+        year: details.year || 1995,
+        policy_probability: Math.max(0.04, Number((0.65 / (idx + 1)).toFixed(3)))
       };
     }).slice(0, topK);
 
@@ -93,13 +108,17 @@ export const getRecommendations = async (userId = 1, modelName = null, topK = 10
       recommendations: ranked,
       active_model: model,
       model_type: model.includes('PPO') || model.includes('DQN') ? 'Deep Reinforcement Learning' : 'Baseline Heuristic',
-      epsilon: model === 'DQN' ? 0.05 : 0.0,
+      epsilon: Number(exploration.toFixed(2)),
       user_id: userId,
-      session_step: uState.step,
+      session_step: displayStep,
+      max_session_steps: 20,
+      cumulative_reward: Number(uState.cumulativeReward.toFixed(1)),
+      user_satisfaction: Number(uState.satisfaction.toFixed(2)),
       satisfaction: Number(uState.satisfaction.toFixed(2)),
       boredom: Number(uState.boredom.toFixed(2)),
       retention_probability: Number((Math.max(0.1, uState.satisfaction * (1.0 - uState.boredom * 0.7))).toFixed(2)),
-      user_state: Array.from({ length: 48 }, (_, i) => Number((Math.sin(i + uState.step) * 0.5 + 0.5).toFixed(3)))
+      exploration_rate: Number(exploration.toFixed(2)),
+      user_state: Array.from({ length: 48 }, (_, i) => Number((Math.sin(i + displayStep) * 0.5 + 0.5).toFixed(3)))
     };
   }
 };
@@ -115,29 +134,29 @@ export const recordInteraction = async (userId, actionId, interactionType, model
     return res.data;
   } catch (err) {
     const uState = getUserClientState(userId);
-    uState.step += 1;
+    uState.step = (uState.step % 20) + 1;
     uState.totalInteractions += 1;
     
     let baseR = 1.0;
     if (interactionType === 'click') {
       baseR = localWeights.click;
-      uState.satisfaction = Math.min(1.0, uState.satisfaction + 0.03);
+      uState.satisfaction = Math.min(0.98, uState.satisfaction + 0.02);
       uState.boredom = Math.max(0.0, uState.boredom + 0.01);
       uState.consecutiveSkips = 0;
     } else if (interactionType === 'like') {
       baseR = localWeights.like;
-      uState.satisfaction = Math.min(1.0, uState.satisfaction + 0.06);
+      uState.satisfaction = Math.min(0.98, uState.satisfaction + 0.05);
       uState.boredom = Math.max(0.0, uState.boredom - 0.03);
       uState.consecutiveSkips = 0;
     } else if (interactionType === 'share') {
       baseR = localWeights.share;
-      uState.satisfaction = Math.min(1.0, uState.satisfaction + 0.09);
+      uState.satisfaction = Math.min(0.98, uState.satisfaction + 0.07);
       uState.boredom = Math.max(0.0, uState.boredom - 0.05);
       uState.consecutiveSkips = 0;
     } else if (interactionType === 'skip') {
       baseR = localWeights.skip;
-      uState.satisfaction = Math.max(0.1, uState.satisfaction - 0.08);
-      uState.boredom = Math.min(1.0, uState.boredom + 0.12);
+      uState.satisfaction = Math.max(0.20, uState.satisfaction - 0.07);
+      uState.boredom = Math.min(0.90, uState.boredom + 0.10);
       uState.consecutiveSkips += 1;
     }
 
@@ -145,6 +164,13 @@ export const recordInteraction = async (userId, actionId, interactionType, model
     const noveltyB = localWeights.novelty_bonus;
     const fatigueP = uState.boredom * localWeights.fatigue_penalty;
     const totalR = baseR + diversityB + noveltyB - fatigueP;
+    uState.cumulativeReward += totalR;
+
+    const displayStep = Math.min(20, Math.max(1, ((uState.step - 1) % 20) + 1));
+    const model = modelName || localActiveModel;
+    const exploration = model === 'DQN' 
+      ? Math.max(0.05, 0.35 * Math.pow(0.94, displayStep)) 
+      : Math.max(0.08, 0.24 * Math.pow(0.97, displayStep));
 
     return {
       success: true,
@@ -156,10 +182,14 @@ export const recordInteraction = async (userId, actionId, interactionType, model
         fatigue_penalty: Number((-fatigueP).toFixed(2)),
         retention_reward: Number((uState.satisfaction * 1.5).toFixed(2))
       },
-      session_step: uState.step,
+      session_step: displayStep,
+      max_session_steps: 20,
+      cumulative_reward: Number(uState.cumulativeReward.toFixed(1)),
+      user_satisfaction: Number(uState.satisfaction.toFixed(2)),
       satisfaction: Number(uState.satisfaction.toFixed(2)),
       boredom: Number(uState.boredom.toFixed(2)),
-      is_session_done: uState.consecutiveSkips >= 4 || uState.step >= 30,
+      exploration_rate: Number(exploration.toFixed(2)),
+      is_session_done: displayStep >= 20 || uState.consecutiveSkips >= 4,
       retention_probability: Number((uState.satisfaction * (1.0 - uState.boredom * 0.7)).toFixed(2))
     };
   }
@@ -173,14 +203,14 @@ export const getUserProfile = async (userId = 1) => {
     const uState = getUserClientState(userId);
     return {
       user_id: userId,
-      name: userId === 1 ? "Tharun Devanboina (Demo)" : `Research User #${userId}`,
+      name: userId === 1 ? "Tharun Devanboina" : `Research User #${userId}`,
       age: 24,
       gender: "M",
-      occupation: "AI Engineer / Researcher",
+      occupation: "Lead ML Researcher",
       favorite_genres: ["Action", "Sci-Fi", "Drama", "Thriller"],
       total_interactions: uState.totalInteractions,
       current_session: {
-        step: uState.step,
+        step: Math.min(20, Math.max(1, ((uState.step - 1) % 20) + 1)),
         satisfaction: Number(uState.satisfaction.toFixed(2)),
         boredom: Number(uState.boredom.toFixed(2)),
         retention_probability: Number((uState.satisfaction * (1.0 - uState.boredom * 0.7)).toFixed(2))
@@ -195,7 +225,7 @@ export const listDemoUsers = async () => {
     return res.data;
   } catch (err) {
     return [
-      { id: 1, name: "Tharun Devanboina", age: 24, occupation: "AI Engineer", favorite_genres: ["Action", "Sci-Fi", "Drama"], interactions_count: 48 },
+      { id: 1, name: "Tharun Devanboina", age: 24, occupation: "Lead ML Researcher", favorite_genres: ["Action", "Sci-Fi", "Drama"], interactions_count: 48 },
       { id: 2, name: "Alex Morgan", age: 28, occupation: "Data Scientist", favorite_genres: ["Comedy", "Romance", "Drama"], interactions_count: 35 },
       { id: 3, name: "Sarah Connor", age: 34, occupation: "Executive", favorite_genres: ["Sci-Fi", "Action", "Thriller"], interactions_count: 62 },
       { id: 4, name: "David Miller", age: 45, occupation: "Educator", favorite_genres: ["Documentary", "History", "Drama"], interactions_count: 29 },
@@ -222,7 +252,7 @@ export const listItems = async (page = 1, limit = 20, genre = null, search = nul
     }
     const start = (page - 1) * limit;
     const items = allItems.slice(start, start + limit).map(it => {
-      const details = MOVIE_DETAILS[it.title] || {};
+      const details = getMovieDetails(it.title, (it.genres && it.genres[0]) || "Action");
       return {
         ...it,
         poster: details.poster || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80",
@@ -247,23 +277,24 @@ export const getItemDetail = async (actionId) => {
   } catch (err) {
     const allItems = Array.isArray(itemsData) ? itemsData : (itemsData.items || []);
     const it = allItems.find(x => x.action_id === Number(actionId)) || allItems[0] || {};
-    const details = MOVIE_DETAILS[it.title] || {};
+    const details = getMovieDetails(it.title, (it.genres && it.genres[0]) || "Action");
     return {
       action_id: it.action_id ?? actionId,
       item_id: it.item_id ?? 1,
-      title: it.title || "Star Wars (1977)",
-      genres: it.genres || ["Action", "Adventure", "Sci-Fi"],
-      average_rating: it.average_rating || 4.35,
+      title: it.title || details.title || "Braveheart (1995)",
+      genres: details.genres || it.genres || ["Action", "Drama", "War"],
+      average_rating: it.average_rating || details.imdb_rating || 8.3,
       num_ratings: it.num_ratings || 583,
-      poster: details.poster || "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80",
-      backdrop: details.backdrop || "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1200&auto=format&fit=crop&q=80",
-      overview: details.overview || "An epic cinematic masterpiece exploring the depths of space, heroism, and destiny.",
-      director: details.director || "George Lucas",
-      cast: details.cast || ["Mark Hamill", "Harrison Ford", "Carrie Fisher"],
-      duration: details.duration || "2h 01m",
-      year: details.year || 1977,
-      imdb_rating: details.imdb_rating || 8.6,
-      tagline: details.tagline || "May the Force be with you."
+      poster: details.poster || "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?w=800&auto=format&fit=crop&q=80",
+      backdrop: details.backdrop || "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?w=1400&auto=format&fit=crop&q=80",
+      overview: details.overview || "An epic cinematic masterpiece exploring heroic journeys and profound destinies.",
+      director: details.director || "Mel Gibson",
+      cast: details.cast || ["Leading Actor", "Supporting Cast"],
+      duration: details.duration || "1h 54m",
+      year: details.year || 1995,
+      imdb_rating: details.imdb_rating || 8.3,
+      num_reviews: details.num_reviews || "412K",
+      tagline: details.tagline || "Every man dies, not every man really lives."
     };
   }
 };
@@ -350,7 +381,9 @@ export const resetUserSession = async (userId) => {
     return res.data;
   } catch (err) {
     clientUserStates[userId] = {
-      step: 0,
+      step: 1,
+      maxSteps: 20,
+      cumulativeReward: 28.5,
       satisfaction: 0.85,
       boredom: 0.05,
       history: [],

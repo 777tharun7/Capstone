@@ -266,10 +266,16 @@ export default function ItemDetailPage({ itemId, onBack, currentUser = 1, active
   };
 
   // Play a movie directly from Up Next or More Like This
-  const handleSelectNextMovie = (movie) => {
+  const handleSelectNextMovie = async (movie) => {
+    const actId = movie.id || movie.action_id || 12;
+    try {
+      await recordInteraction(currentUser, actId, 'click', activeModel);
+    } catch (e) {
+      console.error(e);
+    }
     const meta = getMovieDetails(movie.title);
     setCurrentMovie({
-      action_id: movie.id || 12,
+      action_id: actId,
       title: movie.title,
       imdb_rating: meta.imdb_rating || movie.rating || 8.0,
       num_reviews: meta.num_reviews || "350K",
@@ -290,7 +296,7 @@ export default function ItemDetailPage({ itemId, onBack, currentUser = 1, active
     setToastMessage({
       type: 'watch',
       title: `Now Streaming: ${movie.title}`,
-      details: `RL Policy Action Transition Executed: User State Updated (Satisfaction +0.08)`
+      details: `RL Policy Action Transition Executed: User State S_t → S_{t+1} (Step incremented)`
     });
     setTimeout(() => setToastMessage(null), 4000);
   };

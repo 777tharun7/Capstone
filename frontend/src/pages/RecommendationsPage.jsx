@@ -329,9 +329,9 @@ export default function RecommendationsPage({
   const [recommendations, setRecommendations] = useState(DEFAULT_RECOMMENDATIONS);
   const [selectedExplainMovie, setSelectedExplainMovie] = useState(DEFAULT_RECOMMENDATIONS[1]);
   const [sessionMeta, setSessionMeta] = useState({
-    step: 10,
-    cumulative_reward: 48.5,
-    satisfaction: 0.99,
+    step: 1,
+    cumulative_reward: 32.4,
+    satisfaction: 0.86,
     model_metadata: { optimization_target: "Sequential Multi-Step Policy Optimization" },
     state_breakdown: {
       recent_engagement: 0.82,
@@ -569,7 +569,7 @@ export default function RecommendationsPage({
             </div>
             <div className="flex justify-between">
               <span>Step:</span>
-              <span className="text-slate-800 font-bold">{sessionMeta?.step || 10} / 20</span>
+              <span className="text-slate-800 font-bold">{Math.min(20, Math.max(1, ((sessionMeta?.step || 1) - 1) % 20 + 1))} / 20</span>
             </div>
             <div className="flex justify-between">
               <span>Environment:</span>
@@ -630,7 +630,7 @@ export default function RecommendationsPage({
                   </div>
                   <div>
                     <span className="font-bold text-slate-900 text-xs block leading-none">{uProf.name}</span>
-                    <span className="text-[9px] text-slate-500 font-medium">{uProf.role} • Step: {sessionMeta?.step || 10}</span>
+                    <span className="text-[9px] text-slate-500 font-medium">{uProf.role} • Step: {Math.min(20, Math.max(1, ((sessionMeta?.step || 1) - 1) % 20 + 1))}</span>
                   </div>
                 </div>
               );
@@ -933,8 +933,9 @@ export default function RecommendationsPage({
                   >
                     {/* Top Image Banner with Rank & Duration Overlay */}
                     <div 
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
+                        await handleInteract(item.action_id, 'click');
                         if (onViewDetail) onViewDetail(item.action_id);
                         else if (setActivePage) setActivePage('item-detail');
                       }}
@@ -1010,8 +1011,9 @@ export default function RecommendationsPage({
                     {/* Action Buttons: Watch, Why This?, Bookmark */}
                     <div className="flex items-center space-x-1 pt-1 border-t border-slate-100">
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
+                          await handleInteract(item.action_id, 'click');
                           if (onViewDetail) onViewDetail(item.action_id);
                           else if (setActivePage) setActivePage('item-detail');
                         }}
@@ -1230,6 +1232,11 @@ export default function RecommendationsPage({
             {CONTINUE_WATCHING_ITEMS.map((item) => (
               <div 
                 key={item.id}
+                onClick={async () => {
+                  await handleInteract(item.id || 1, 'click');
+                  if (onViewDetail) onViewDetail(item.id || 1);
+                  else if (setActivePage) setActivePage('item-detail');
+                }}
                 className="flex items-center space-x-2.5 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 transition-colors group cursor-pointer"
               >
                 {/* Thumbnail with Play Overlay */}

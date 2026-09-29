@@ -171,8 +171,9 @@ export default function RecommendationCard({
           {/* Interactive User Simulation Feedback Bar & Watch Button */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
+                if (onInteract) await onInteract(item.action_id, 'click');
                 if (onViewDetail) onViewDetail(item.action_id);
               }}
               title="Watch in RL Movie Player"

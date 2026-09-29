@@ -168,42 +168,42 @@ export default function RecommendationCard({
             <span>Why this recommendation?</span>
           </button>
 
-          {/* Interactive User Simulation Feedback Bar */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+          {/* Interactive User Simulation Feedback Bar & Watch Button */}
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
             <button
-              onClick={(e) => handleAction(e, 'click')}
-              disabled={isInteracting}
-              title="Click Item (+1.0 reward)"
-              className="flex-1 flex items-center justify-center space-x-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-all hover:scale-102"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onViewDetail) onViewDetail(item.action_id);
+              }}
+              title="Watch in RL Movie Player"
+              className="flex-1 flex items-center justify-center space-x-1 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs hover:scale-102"
             >
-              <Eye className="w-3 h-3 text-cyan-600" />
-              <span className="text-[11px]">Click</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span className="text-[11px]">Watch</span>
             </button>
 
             <button
               onClick={(e) => handleAction(e, 'like')}
               disabled={isInteracting}
-              title="Like Item (+3.0 reward)"
-              className="flex-1 flex items-center justify-center space-x-1 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 transition-all hover:scale-102"
+              title="Like Item (+2.5 reward)"
+              className="flex items-center justify-center px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 transition-all hover:scale-102"
             >
               <Heart className="w-3 h-3 text-emerald-600 fill-emerald-600" />
-              <span className="text-[11px]">Like</span>
             </button>
 
             <button
               onClick={(e) => handleAction(e, 'share')}
               disabled={isInteracting}
-              title="Share Item (+5.0 reward)"
-              className="flex-1 flex items-center justify-center space-x-1 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold border border-purple-200 transition-all hover:scale-102"
+              title="Share Item (+3.5 reward)"
+              className="flex items-center justify-center px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold border border-purple-200 transition-all hover:scale-102"
             >
               <Share2 className="w-3 h-3 text-purple-600" />
-              <span className="text-[11px]">Share</span>
             </button>
 
             <button
               onClick={(e) => handleAction(e, 'skip')}
               disabled={isInteracting}
-              title="Skip Item (-2.0 penalty)"
+              title="Skip Item (-1.5 penalty)"
               className="flex items-center justify-center px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-colors"
             >
               <FastForward className="w-3 h-3" />

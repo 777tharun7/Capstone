@@ -128,7 +128,20 @@ Evaluated across 50 simulated user test rollouts on the Gymnasium recommendation
 
 ---
 
-## 5. Repository Structure
+## 5. Theoretical Foundations & Literature Benchmark Papers
+
+This research platform synthesizes and benchmarks concepts from four foundational research papers in the sequential recommendation and RL literature:
+
+| # | Paper Title & Authors | Venue & Year | Core Focus & Contributions | Limitations Identified |
+|---|---|---|---|---|
+| **1** | **A Survey on Reinforcement Learning for Recommender Systems**<br>_Yuanguo Lin, Yong Liu, Fan Lin, et al._ | **IEEE TNNLS**<br>(2023) | • Surveys RL-based recommender systems across interactive, conversational, and sequential setups.<br>• Details how traditional RecSys struggle with dynamic user interest shifts whereas RL optimizes long-term satisfaction. | Primarily theoretical survey without a dedicated custom empirical benchmark or open simulator. |
+| **2** | **Deep Reinforcement Learning for List-wise Recommendations (LIRD)**<br>_Xiangyu Zhao, Liang Zhang, Long Xia, et al._ | **ACM KDD**<br>(2019) | • Proposes LIRD Actor-Critic framework for list-wise recommendation MDPs.<br>• Utilizes an offline-trained interactive environment simulator to capture dynamic user feedback. | High reliance on simulator fidelity; assumes fixed user browsing patterns and high list generation latency. |
+| **3** | **Reinforcement Learning to Rank in E-Commerce Search Engine**<br>_Yujing Hu, Qing Da, Anxiang Zeng, et al._ | **ACM SIGKDD**<br>(2018) | • Formulates search ranking as Search Session MDP (SSMDP) to optimize full session transactions (clicks & purchases).<br>• Introduces DPG-FBE; achieved 30%–40% higher GMV on Taobao. | Demands extensive logging infrastructure and incurs high computational training/inference costs. |
+| **4** | **Reinforcement Learning based Recommender Systems: A Survey**<br>_M. Mehdi Afsar, Trafford Crump, Behrouz Far_ | **ACM CSUR**<br>(2022) | • Comprehensive ACM survey formalizing recommendation as an MDP.<br>• Categorizes Value-based, Policy-based, and Model-based paradigms and state-reward engineering. | Theoretical comparison lacking end-to-end open implementations for combined fatigue-diversity reward tuning. |
+
+---
+
+## 6. Repository Structure
 
 ```
 rl-recommendation-system/

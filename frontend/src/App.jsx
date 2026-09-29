@@ -33,7 +33,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-brand-500 selection:text-white transition-colors duration-200">
       
       {/* Top Navigation */}
       <Navbar
@@ -130,18 +130,18 @@ export default function App() {
       />
 
       {/* Research Platform Footer */}
-      <footer className="border-t border-slate-200 bg-white py-8 text-xs text-slate-500 shadow-sm">
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 py-8 text-xs text-slate-500 dark:text-slate-400 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-800">RecSys RL Platform</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">RecSys RL Platform</span>
             <span>•</span>
             <span>Academic Research & Production Demonstration</span>
           </div>
           <div className="flex items-center space-x-4">
-            <button onClick={() => setActivePage('about')} className="hover:text-brand-600 transition-colors">Research Docs</button>
-            <button onClick={() => setActivePage('evaluation')} className="hover:text-brand-600 transition-colors">Benchmark</button>
-            <button onClick={() => setActivePage('models')} className="hover:text-brand-600 transition-colors">Models</button>
-            <button onClick={() => setIsRewardModalOpen(true)} className="hover:text-brand-600 transition-colors">Reward Weights</button>
+            <button onClick={() => setActivePage('about')} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Research Docs</button>
+            <button onClick={() => setActivePage('evaluation')} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Benchmark</button>
+            <button onClick={() => setActivePage('models')} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Models</button>
+            <button onClick={() => setIsRewardModalOpen(true)} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Reward Weights</button>
           </div>
         </div>
       </footer>

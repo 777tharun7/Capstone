@@ -113,18 +113,18 @@ $$R_t = R_{\text{immediate}} + R_{\text{delayed}} - P_{\text{fatigue}}$$
 
 ---
 
-## 4. Empirical Evaluation Results
+## 4. Simulated Evaluation Results
 
-Evaluated across 50 simulated user test rollouts on the Gymnasium recommendation environment with identical initial user seeds:
+The table below is transcribed from [the saved evaluation results](experiments/evaluation_results.json), which records 50 simulated test sessions per model. These are results from a simulated user environment, **not a live product or real-user study**.
 
-| Model Architecture | Avg Cumulative Return ($G$) | Session Duration (Steps) | User Retention Rate | Click-Through Rate (CTR) | Genre Diversity | Skip Rate |
-|---|---|---|---|---|---|---|
-| **Collaborative Filtering** | `6.59 ± 4.1` | `6.64 steps` | `4.0%` | `18.2%` | `0.412` | `28.4%` |
-| **Contextual Bandit (LinUCB)**| `17.18 ± 6.2`| `8.48 steps` | `34.0%` | `24.1%` | `0.584` | `18.1%` |
-| **Deep Q-Network (DQN)** | `17.41 ± 5.9` | `8.84 steps` | `32.0%` | `26.3%` | `0.615` | `16.2%` |
-| **PPO (Proposed)** | **`18.93 ± 5.5`** | **`8.34 steps`** | **`34.0%`** | **`27.8%`** | **`0.648`** | **`14.5%`** |
+| Model | Mean cumulative return (± SD) | Avg. session length | Retention | CTR | Recommendation diversity | Skip rate |
+|---|---:|---:|---:|---:|---:|---:|
+| Collaborative Filtering | 6.59 ± 5.63 | 6.64 steps | 4.0% | 26.81% | 0.4889 | 41.87% |
+| Contextual Bandit (LinUCB) | 17.18 ± 8.29 | 8.48 steps | 34.0% | 34.43% | 0.3364 | 29.95% |
+| Deep Q-Network (DQN) | 17.41 ± 15.24 | 8.84 steps | 32.0% | 33.71% | 0.2687 | 37.33% |
+| Proximal Policy Optimization (PPO) | 18.93 ± 6.28 | 8.34 steps | 18.0% | 30.70% | 0.2459 | 28.06% |
 
-> **Key Research Finding**: Both DQN and PPO achieve more than **2.8x higher cumulative session returns** and **over 8x higher retention** compared to static Collaborative Filtering by dynamically pacing novel genres and preventing fatigue penalties.
+**Interpretation:** PPO has the highest mean cumulative return in this saved evaluation, while LinUCB has the highest reported retention and CTR. PPO's diversity and retention figures are not the highest, and the results should not be summarized as universally superior across metrics. Treat this table as exploratory: inspect the evaluation script, metric definitions, and repeatability before drawing broader conclusions.
 
 ---
 

@@ -115,7 +115,7 @@ $$R_t = R_{\text{immediate}} + R_{\text{delayed}} - P_{\text{fatigue}}$$
 
 ## 4. Simulated Evaluation Results
 
-The table below is transcribed from [the saved evaluation results](experiments/evaluation_results.json), which records 50 simulated test sessions per model. These are results from a simulated user environment, **not a live product or real-user study**.
+The summary fields in [the saved evaluation results](experiments/evaluation_results.json) report 50 simulated test sessions per model. The same file contains only 20 values in each `session_rewards` array, so the full rollout-level reward sample is not included. These are results from a simulated user environment, **not a live product or real-user study**; reconcile the summary/sample-count discrepancy before making stronger claims.
 
 | Model | Mean cumulative return (± SD) | Avg. session length | Retention | CTR | Recommendation diversity | Skip rate |
 |---|---:|---:|---:|---:|---:|---:|
